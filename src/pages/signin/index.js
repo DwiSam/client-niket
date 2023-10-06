@@ -6,6 +6,7 @@ import axios from "axios";
 
 import NButton from "../../components/Button";
 import TextInputWithLabel from "../../components/TextInputWithLabel";
+import NAlert from "../../components/Alert";
 
 export default function PageSignIn() {
   const [form, setForm] = useState({
@@ -20,7 +21,7 @@ export default function PageSignIn() {
   const handleSubmit = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:9000/v1/api/cms/auth/signin",
+        "http://localhost:9000/api/v1/cms/auth/signin",
         {
           email: form.email,
           password: form.password,
@@ -28,12 +29,13 @@ export default function PageSignIn() {
       );
       console.log(res);
     } catch (err) {
-      console.log(err);
+      console.log(err.response.data.msg);
     }
   };
 
   return (
     <Container md={12}>
+      <NAlert message={"test"} type="danger" />
       <Card style={{ width: "50%" }} className="m-auto mt-5">
         <Card.Body>
           <Card.Title className="text-center">Form Sign In</Card.Title>

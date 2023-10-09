@@ -1,17 +1,27 @@
 import React, { useState } from "react";
 import { Container } from "react-bootstrap";
 import Card from "react-bootstrap/Card";
-import Form from "react-bootstrap/Form";
 import axios from "axios";
+import { useNavigate, Navigate } from "react-router-dom";
 
-import NButton from "../../components/Button";
-import TextInputWithLabel from "../../components/TextInputWithLabel";
+import NForm from "./form";
 import NAlert from "../../components/Alert";
+import { config } from "../../configs";
 
 export default function PageSignIn() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const [isLoading, setIsLoading] = useState(false);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
+  });
+
+  const [alert, setAlert] = useState({
+    status: false,
+    message: "",
+    type: "danger",
   });
 
   const handleChange = (e) => {
@@ -19,48 +29,43 @@ export default function PageSignIn() {
   };
 
   const handleSubmit = async () => {
+    setIsLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:9000/api/v1/cms/auth/signin",
-        {
-          email: form.email,
-          password: form.password,
-        }
+        `${config.api_host_dev}cms/auth/signin`,
+        form
       );
-      console.log(res);
+
+      localStorage.setItem("token", res.data.data.token);
+      setIsLoading(false);
+      navigate("/");
     } catch (err) {
-      console.log(err.response.data.msg);
+      setIsLoading(false);
+      setAlert({
+        status: true,
+        message: err?.response?.data?.msg ?? "Internal Server Error",
+        type: "danger",
+      });
     }
   };
 
+  console.log(token);
+  if (token) return <Navigate to="/" replace={true} />;
+
   return (
-    <Container md={12}>
-      <NAlert message={"test"} type="danger" />
+    <Container md={12} className="my-5">
+      <div className="m-auto" style={{ width: "50%" }}>
+        {alert.status && <NAlert message={alert.message} type={alert.type} />}
+      </div>
       <Card style={{ width: "50%" }} className="m-auto mt-5">
         <Card.Body>
           <Card.Title className="text-center">Form Sign In</Card.Title>
-          <Form>
-            <TextInputWithLabel
-              label="Email Address"
-              name="email"
-              value={form.email}
-              type="email"
-              placeholder="Enter email"
-              onChange={handleChange}
-            />
-            <TextInputWithLabel
-              label="Password"
-              name="password"
-              value={form.password}
-              type="password"
-              placeholder="Password"
-              onChange={handleChange}
-            />
-
-            <NButton action={handleSubmit} variant="primary">
-              Submit
-            </NButton>
-          </Form>
+          <NForm
+            form={form}
+            handleChange={handleChange}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
         </Card.Body>
       </Card>
     </Container>
